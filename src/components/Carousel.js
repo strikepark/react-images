@@ -1,7 +1,6 @@
 // @flow
 // @jsx glam
 import React, { Component, type ElementRef } from 'react'
-import { findDOMNode } from 'react-dom'
 import glam from 'glam'
 import rafScheduler from 'raf-schd'
 import { ViewPager, Frame, Track, View as PageView } from 'react-view-pager'
@@ -95,7 +94,7 @@ class Carousel extends Component<CarouselProps, CarouselState> {
   components: CarouselComponents
   container: HTMLElement
   footer: HTMLElement
-  frame: ElementRef<Frame>
+  frame: ElementRef<Frame> // Keep the same type, but this will now reference the component directly
   header: HTMLElement
   mounted: boolean = false
   track: ElementRef<Track>
@@ -162,8 +161,10 @@ class Carousel extends Component<CarouselProps, CarouselState> {
   getFooter = (ref: HTMLElement) => {
     this.footer = ref
   }
+  // Updated method - no longer uses findDOMNode
   getFrame = (ref: Frame) => {
-    this.frame = findDOMNode(ref)
+    console.log(ref)
+    this.frame = ref
   }
   getHeader = (ref: HTMLElement) => {
     this.header = ref
@@ -209,9 +210,25 @@ class Carousel extends Component<CarouselProps, CarouselState> {
 
     return views[currentIndex]
   }
+
+  // Updated focusViewFrame method
   focusViewFrame = () => {
-    if (this.frame && document.activeElement !== this.frame) {
-      this.frame.focus()
+    if (this.frame) {
+      // If Frame component exposes a focus method, use it directly
+      if (typeof this.frame.focus === 'function') {
+        this.frame.focus()
+      }
+      // Alternative: if Frame has a ref to its DOM element
+      else if (this.frame.current && typeof this.frame.current.focus === 'function') {
+        this.frame.current.focus()
+      }
+      // If Frame component has a method to get DOM node
+      else if (typeof this.frame.getDOMNode === 'function') {
+        const domNode = this.frame.getDOMNode()
+        if (domNode && domNode !== document.activeElement) {
+          domNode.focus()
+        }
+      }
     }
   }
 

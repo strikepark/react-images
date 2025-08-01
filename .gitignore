@@ -2,8 +2,6 @@
 .vscode
 
 # Build
-lib
-dist
 docs/dist
 .env
 
